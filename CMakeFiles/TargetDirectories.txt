@@ -1,0 +1,3 @@
+/Users/user2023/generator_for_esp32_mqtt/CMakeFiles/main.dir
+/Users/user2023/generator_for_esp32_mqtt/CMakeFiles/edit_cache.dir
+/Users/user2023/generator_for_esp32_mqtt/CMakeFiles/rebuild_cache.dir
