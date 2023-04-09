@@ -1,2 +1,6 @@
-led: "lampa"
-relay: "button"
+button : "button1"
+button : "button2"
+button : "button3"
+relay : "lamp1"
+relay : "lamp2"
+relay : "lamp3"

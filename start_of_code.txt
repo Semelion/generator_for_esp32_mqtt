@@ -1,5 +1,5 @@
 /* ********************************************** 
-Code by generator_for_esp32_mqtt
+Code generate by generator_for_esp32_mqtt
 https://github.com/Semelion/generator_for_esp32_mqtt
-developed be Semelion 
+developed by Semelion 
 ********************************************** */
