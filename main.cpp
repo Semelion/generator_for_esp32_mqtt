@@ -25,6 +25,7 @@ int main () {
 			esp_code << line << '\n';
 		}
 	}
+	esp_code << "\n";
 
 
 	//PARCING FROM CONFIG AND WRITE DEFINES//
@@ -59,24 +60,29 @@ int main () {
 			}
 
 			// std::cout << type << "\t" << value << "\n";
-
-			if(type == "relay"){
-				names_of_relay.push_back(value);
+			if(type == "relay" || type == "button"){
+				if(type == "relay"){
+					names_of_relay.push_back(value);
+				}else{
+					names_of_buttons.push_back(value);
+				}
 			}else{
-				names_of_buttons.push_back(value);
+				//std::cout << "#define\t" << type << "\t" << value << "\n";
+				esp_code << "#define\t" << type << "\t" << value << "\n";
 			}
 		}
 
-		std::cout << "relays\n";
-		for(int i = 0; i < names_of_relay.size(); i++){
-			std::cout << i << "\t" << names_of_relay[i] << "\n";
-		}
-		std::cout << "buttons\n";
-		for(int i = 0; i < names_of_buttons.size(); i++){
-			std::cout << i << "\t" << names_of_buttons[i] << "\n";
-		}
+		// std::cout << "relays\n";
+		// for(int i = 0; i < names_of_relay.size(); i++){
+		// 	std::cout << i << "\t" << names_of_relay[i] << "\n";
+		// }
+		// std::cout << "buttons\n";
+		// for(int i = 0; i < names_of_buttons.size(); i++){
+		// 	std::cout << i << "\t" << names_of_buttons[i] << "\n";
+		// }
 
-		esp_code << "\n";
+		esp_code << "\nWiFiClient espClient;\nPubSubClient client(espClient);\n\n";
+
 		for(int i = 0; i < names_of_relay.size(); i++){
 			esp_code << "#define\t" << names_of_relay[i] << "\t" << pins[i] << "\n";
 		}
@@ -85,8 +91,7 @@ int main () {
 			esp_code << "#define\t" << names_of_buttons[i] << "\t" << pins[i+names_of_relay.size()] << "\n";
 		}
 
-	}  
-
+	}
 
 	//WRITE SETUP//
 	esp_code << "\n";
@@ -98,7 +103,7 @@ int main () {
 	for(int i = 0; i < names_of_buttons.size(); i++){
 		esp_code << "\tpinmode(" << names_of_buttons[i] << ", INPUT);\n";
 	}
-	esp_code << "}\n";
+	esp_code << "\n\tSerial.begin(115200);\n}\n";
 
 	//CLOSE FILES//
 	config.close();
