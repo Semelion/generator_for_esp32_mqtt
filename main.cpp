@@ -8,10 +8,10 @@ int pins[11] = {23, 22, 21, 19, 18, 5, 17, 16, 4, 2, 15};
 
 int main () {
 	std::ifstream people_file("config.json", std::ifstream::binary);
-	Json::Value people;
-	people_file >> people;
+	Json::Value config_json;
+	people_file >> config_json;
 
-	std::cout<<people;
+	std::cout<<config_json;
 	std::cout << "\n________________________\n"
 
 	//OPEN FILES//
