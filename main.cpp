@@ -2,30 +2,40 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <json/value.h>
+
+#include "includes/simdjson.cpp"
 
 int pins[11] = {23, 22, 21, 19, 18, 5, 17, 16, 4, 2, 15};
 
 int main () {
-	std::ifstream people_file("config.json", std::ifstream::binary);
-	Json::Value config_json;
-	people_file >> config_json;
+	simdjson::ondemand::parser parser;
+   	simdjson::padded_string json = simdjson::padded_string::load("code_parts/config.json");
+    simdjson::ondemand::document tweets = parser.iterate(json);
+    std::cout << "wifi:" << tweets["wifi"]<< std::endl;
+    std::cout << "mqtt_broker:" << tweets["mqtt_broker"]<< std::endl;
 
-	std::cout<<config_json;
-	std::cout << "\n________________________\n"
+    auto arr = tweets["button"].get_array();
+    int a = arr.count_elements();
+    std::cout << "button:" << a << std::endl;
+    for(int i = 0; i < a; i++){
+    	std::cout << i << " ";
+    	std::cout << arr.at(i)["name"] << "\n";
+    }
+   
+	std::cout << "\n________________________\n";
 
 	//OPEN FILES//
 	std::ofstream esp_code;
 	esp_code.open ("smart_house_mqtt.ino");
 
 	std::ifstream start_file;
-	start_file.open("start_of_code.txt");
+	start_file.open("code_parts/start_of_code.txt");
 
 	std::ifstream config;
-	config.open("config.txt");
+	config.open("code_parts/config.txt");
 
 	std::ifstream functions;
-	functions.open("function.txt");
+	functions.open("code_parts/function.txt");
 
 	//WRITE COMMENTS AND NOTES IN TOP OF CODE FILE//
 	if (esp_code.is_open() && start_file.is_open()){
