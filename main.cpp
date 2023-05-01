@@ -3,30 +3,12 @@
 #include <iostream>
 #include <vector>
 
-#include "includes/simdjson.cpp"
+#include <nlohmann/json.hpp>
 
 int pins[11] = {23, 22, 21, 19, 18, 5, 17, 16, 4, 2, 15};
+int count_used_pins = 0;
 
 int main () {
-    // std::cout << "wifi:" << tweets["wifi"]<< std::endl;
-    // std::cout << "mqtt_broker:" << tweets["mqtt_broker"]<< std::endl;
-
-    // auto arr = tweets["button"].get_array();
-    // int a = arr.count_elements();
-    // std::cout << "button:" << a << std::endl;
-    // // std::cout << tweets["button"].at(0)["name"] << "\n";
-    // // std::cout << tweets["button"].at(1)["name"] << "\n";
-    // // std::cout << tweets["button"].at(2)["name"] << "\n";
-    // // std::cout << tweets["button"].at(3)["name"] << "\n";
-    // // std::cout << tweets["button"].at(4)["name"] << "\n";
-    // // std::cout << tweets["button"].at(5)["name"] << "\n";
-    // for(int i = 0; i < a; i++){
-    // 	std::cout << i << " ";
-    // 	std::cout << tweets["button"].at(5)["name"] << "\n";
-    // }
-   
-	// std::cout << "\n________________________\n";
-
 	//OPEN FILES//
 	std::ofstream esp_code;
 	esp_code.open ("smart_house_mqtt.ino");
@@ -34,19 +16,15 @@ int main () {
 	std::ifstream start_file;
 	start_file.open("code_parts/start_of_code.txt");
 
-	// std::ifstream config;
-	// config.open("code_parts/config.txt");
-
 	std::ifstream functions;
 	functions.open("code_parts/function.txt");
 
-	simdjson::ondemand::parser parser;
-   	simdjson::padded_string json = simdjson::padded_string::load("code_parts/config.json");
-    simdjson::ondemand::document tweets = parser.iterate(json);
+	std::ifstream config_file("code_parts/config.json");
+	nlohmann::json config = nlohmann::json::parse(config_file);
 
 	//WRITE COMMENTS AND NOTES IN TOP OF CODE FILE//
 	if (esp_code.is_open() && start_file.is_open()){
-		std::cout << "start_file is opened\n";
+		//std::cout << "start_file is opened\n";
 		std::string line;
 		while ( std::getline (start_file,line) ){
 			// std::cout << line << "\n";
@@ -58,100 +36,40 @@ int main () {
 
 	//PARCING FROM CONFIG AND WRITE DEFINES//
 
-	// std::cout << "wifi:" << tweets["wifi"]<< std::endl;
-    // std::cout << "mqtt_broker:" << tweets["mqtt_broker"]<< std::endl;
+    esp_code << "#define WIFI_SSID\t" << config["wifi"]["ssid"] << std::endl;
+	esp_code << "#define WIFI_PW\t" << config["wifi"]["pasword"] << std::endl;
+    esp_code << "#define MQTT_BROKER\t" << config["mqtt_broker"]["MQTT_BROKER"] << std::endl;
+    esp_code << "#define MQTT_PORT\t" << config["mqtt_broker"]["MQTT_PORT"] << std::endl;
+    esp_code << "#define MQTT_NAME_OF_DEVICE\t" << config["mqtt_broker"]["MQTT_NAME_OF_DEVICE"] << std::endl;
+    esp_code << "#define MQTT_LOGIN\t" << config["mqtt_broker"]["MQTT_LOGIN"] << std::endl;
+    esp_code << "#define MQTT_PW\t" << config["mqtt_broker"]["MQTT_PW"] << "\n" << std::endl;
 
-    esp_code << "#define WIFI_SSID\t" << tweets["wifi"]["ssid"] << std::endl;
-	esp_code << "#define WIFI_PW\t" << tweets["wifi"]["pasword"] << std::endl;
-    esp_code << "#define MQTT_BROKER\t" << tweets["mqtt_broker"]["MQTT_BROKER"] << std::endl;
-    esp_code << "#define MQTT_PORT\t" << tweets["mqtt_broker"]["MQTT_PORT"] << std::endl;
-    esp_code << "#define MQTT_NAME_OF_DEVICE\t" << tweets["mqtt_broker"]["MQTT_NAME_OF_DEVICE"] << std::endl;
-    esp_code << "#define MQTT_LOGIN\t" << tweets["mqtt_broker"]["MQTT_LOGIN"] << std::endl;
-    esp_code << "#define MQTT_PW\t" << tweets["mqtt_broker"]["MQTT_PW"] << "\n" << std::endl;
 
-    auto arr = tweets["button"].get_array();
- 	std::cout << arr.count_elements() << "\n";
-    for(int i = 0; i < arr.count_elements(); i++){
-    	std::cout << i << "\n";
-    	esp_code << "#define " << tweets["button"].at(i)["name"] << "\t" << pins[i] << "\n";
-    }
+    //std::cout << config["button"].size() << "\n";
+	for(int i = 0; i < config["button"].size(); i++){
+		esp_code << "#define " << config["button"].at(i)["name"] << "\t" << pins[i] << "\n";
+		count_used_pins++;
+	}
 
-	// std::vector<std::string> names_of_relay;
-	// std::vector<std::string> names_of_buttons;
+	for(int i = 0; i < config["relay"].size(); i++){
+		esp_code << "#define " << config["relay"].at(i)["name"] << "\t" << pins[i + count_used_pins] << "\n";
+	}
 
-	// if (esp_code.is_open() && config.is_open()){
-	// 	std::cout << "config is opened\n";
-	// 	std::string line;
-	// 	while ( std::getline(config,line) ){
-	// 		std::string type;
-	// 		std::string value;
+	esp_code << "WiFiClient espClient;\n";
+	esp_code << "PubSubClient client(espClient);\n\n";
 
-	// 		int i = 0;
-	// 		while(line[i] != ' ' && line[i] != ':'){
-	// 			if (i >= line.size()){
-	// 				std::cout << "i error\n";
-	// 				break;
-	// 			}
-	// 			type += line[i];
-	// 			i++;
-	// 		}
+	///WRITE SETUP////
+	esp_code << "void setup() {\n";
+	esp_code << "\tSerial.begin(9600);\n\n";
 
-	// 		while(line[i] != '\"')
-	// 			i++;
-			
-	// 		i++;
-	// 		while(line[i] != '\"'){
-	// 			value += line[i];
-	// 			i++;
-	// 		}
+	for(int i = 0; i < config["button"].size(); i++){
+		esp_code << "\tpinMode(" << config["button"].at(i)["name"] << ", INPUT);\n";
+	}
 
-	// 		// std::cout << type << "\t" << value << "\n";
-	// 		if(type == "relay" || type == "button"){
-	// 			if(type == "relay"){
-	// 				names_of_relay.push_back(value);
-	// 			}else{
-	// 				names_of_buttons.push_back(value);
-	// 			}
-	// 		}else{
-	// 			//std::cout << "#define\t" << type << "\t" << value << "\n";
-	// 			esp_code << "#define\t" << type << "\t\"" << value << "\"\n";
-	// 		}
-	// 	}
-
-	// 	// std::cout << "relays\n";
-	// 	// for(int i = 0; i < names_of_relay.size(); i++){
-	// 	// 	std::cout << i << "\t" << names_of_relay[i] << "\n";
-	// 	// }
-	// 	// std::cout << "buttons\n";
-	// 	// for(int i = 0; i < names_of_buttons.size(); i++){
-	// 	// 	std::cout << i << "\t" << names_of_buttons[i] << "\n";
-	// 	// }
-
-	// 	esp_code << "\nWiFiClient espClient;\nPubSubClient client(espClient);\n\n";
-
-	// 	for(int i = 0; i < names_of_relay.size(); i++){
-	// 		esp_code << "#define\t" << names_of_relay[i] << "\t" << pins[i] << "\n";
-	// 	}
-
-	// 	for(int i = 0; i < names_of_buttons.size(); i++){
-	// 		esp_code << "#define\t" << names_of_buttons[i] << "\t" << pins[i+names_of_relay.size()] << "\n";
-	// 	}
-
-	// }
-
-	// //WRITE SETUP//
-	// esp_code << "\n";
-	// esp_code << "void setup(){" << '\n';
-	// for(int i = 0; i < names_of_relay.size(); i++){
-	// 	esp_code << "\tpinMode(" << names_of_relay[i] << ", OUTPUT);\n";
-	// }
-
-	// for(int i = 0; i < names_of_buttons.size(); i++){
-	// 	esp_code << "\tpinMode(" << names_of_buttons[i] << ", INPUT);\n";
-	// }
-	// esp_code << "\n\tSerial.begin(115200); connect();\n}\n\n";
-
-	// esp_code << "void loop(){}\n\n";
+	for(int i = 0; i < config["relay"].size(); i++){
+		esp_code << "\tpinMode(" << config["relay"].at(i)["name"] << ", OUTPUT);\n";
+	}
+	esp_code << "}\n";
 
 	// //voids//
 	// if (esp_code.is_open() && functions.is_open()){
@@ -165,6 +83,7 @@ int main () {
 
 	//CLOSE FILES//
 	// config.close();
+	config_file.close();
 	start_file.close();
 	esp_code.close();
 	return 0;
