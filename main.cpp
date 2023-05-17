@@ -163,6 +163,7 @@ int main () {
 	//CLOSE FILES//
 	// config.close();
 	config_file.close();
+    functions.close();
 	start_file.close();
 	esp_code.close();
 	return 0;
