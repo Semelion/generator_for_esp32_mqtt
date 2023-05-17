@@ -1,8 +1,6 @@
 void connect(){
 	WiFi.begin(WIFI_SSID, WIFI_PW); // Start Wi-Fi connection
 	while (WiFi.status() != WL_CONNECTED) { // Waiting for connection success
-		delay(250);
-		digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 		Serial.println("Connecting to WiFi..");
 	}
 	Serial.println("Connected to the WiFi network");
